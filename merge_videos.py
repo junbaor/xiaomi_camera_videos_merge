@@ -1,12 +1,12 @@
 import os
 import shutil
-from datetime import datetime, date
-from collections import defaultdict
 import subprocess
-import time
+from collections import defaultdict
+from datetime import datetime, date
 
 # 全局变量用于检测任务是否正在运行
 LOCK_FILE = '/app/merge_videos.lock'
+
 
 def get_date_from_filename(filename):
     # 从文件名中提取日期
@@ -14,19 +14,23 @@ def get_date_from_filename(filename):
     date_str = timestamp_str[:8]
     return datetime.strptime(date_str, '%Y%m%d').date()
 
+
 def check_lock_file():
     # 检查锁文件是否存在，存在则说明有任务在运行
     return os.path.exists(LOCK_FILE)
+
 
 def create_lock_file():
     # 创建锁文件
     with open(LOCK_FILE, 'w') as f:
         f.write('locked')
 
+
 def remove_lock_file():
     # 删除锁文件
     if os.path.exists(LOCK_FILE):
         os.remove(LOCK_FILE)
+
 
 def merge_videos_by_day(input_dir, archive_dir, output_dir):
     # 打印环境变量
@@ -78,7 +82,8 @@ def merge_videos_by_day(input_dir, archive_dir, output_dir):
 
                 # 启动 ffmpeg 进程
                 process = subprocess.Popen([
-                    'ffmpeg', '-f', 'concat', '-safe', '0', '-i', fifo_path, '-c', 'copy', '-loglevel', 'error', output_file
+                    'ffmpeg', '-f', 'concat', '-safe', '0', '-i', fifo_path, '-c', 'copy', '-loglevel', 'error',
+                    output_file
                 ])
 
                 # 将文件列表内容写入命名管道
@@ -108,17 +113,11 @@ def merge_videos_by_day(input_dir, archive_dir, output_dir):
         # 删除锁文件，任务结束
         remove_lock_file()
 
-if __name__ == "__main__":
-    import argparse
 
+if __name__ == "__main__":
     # 从环境变量获取参数
     input_dir = os.getenv('INPUT_DIR', '/data/xiaomi_camera_video/')
     archive_dir = os.getenv('ARCHIVE_DIR', '/data/xiaomi_camera_merged/')
     output_dir = os.getenv('OUTPUT_DIR', '/data/xiaomi_camera_video_output/')
-
-    # 打印环境变量
-    print(f"Input directory: {input_dir}")
-    print(f"Archive directory: {archive_dir}")
-    print(f"Output directory: {output_dir}")
 
     merge_videos_by_day(input_dir, archive_dir, output_dir)
